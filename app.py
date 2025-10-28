@@ -14,7 +14,7 @@ st.sidebar.title("Parametry")
 
 # Ustawienia domyślne jak w zadaniu
 dc_offset = st.sidebar.slider(
-    "Składowa Stała (V_DC)", 0.0, 5.0, 1.0, 0.1,
+    "Składowa Stała (V_DC)", -5.0, 5.0, 0.0, 0.1,
     help="Stałe przesunięcie napięcia (odpowiada prążkowi 0 Hz)."
 )
 amplitude = st.sidebar.slider(
@@ -28,15 +28,15 @@ signal_shape = st.sidebar.selectbox(
     help="Forma fali sygnału wejściowego."
 )
 signal_freq = st.sidebar.slider(
-    "Częstotliwość Sygnału (f_sig)", 1, 200, 120, 1,
+    "Częstotliwość Sygnału (f_sig)", 1, 2000, 120, 1,
     help="Rzeczywista częstotliwość sygnału analogowego."
 )
 sampling_freq = st.sidebar.slider(
-    "Częstotliwość Próbkowania (f_s)", 1, 200, 100, 1,
+    "Częstotliwość Próbkowania (f_s)", 1, 2000, 100, 1,
     help="Jak często sygnał jest mierzony (próbkowany)."
 )
 
-# --- Główny Panel (Wizualizacje) ---
+# --- Główny Panel Wizualizacje) ---
 st.title("Interaktywny Wizualizator Sygnałów i DFT")
 st.markdown("""
 Eksperymentuj z parametrami sygnału i próbkowania, aby zobaczyć, 
@@ -62,21 +62,21 @@ def get_signal_value(t, shape, freq, amp, dc):
     return dc + amp * value
 
 # --- Wykres 1: Dziedzina Czasu ---
-st.header("Sygnał w dziedzinie czasu")
+st.header("Wykres sygnału w dziedzinie czasu")
 
 # Ustawienia osi czasu
-T_DISPLAY = 0.1  # Wyświetlamy 100ms sygnału
+T_DISPLAY = 0.1  
 V_MAX = 15       # Maksymalny zakres napięcia +/- 15V
-N_ANALOG = 1000  # Liczba punktów dla "gładkiego" sygnału
+N_ANALOG = 10000  # Liczba punktów dla "gładkiego" sygnału
 
 # Wektory czasu i wartości
-t_analog = np.linspace(0, T_DISPLAY, N_ANALOG)
+t_analog = np.linspace(0, T_DISPLAY, N_ANALOG) # Symulacja sygnału ciągłęgo
 v_analog = get_signal_value(t_analog, signal_shape, signal_freq, amplitude, dc_offset)
 
 # Próbki cyfrowe
-dt_sample = 1 / sampling_freq
+dt_sample = 1 / sampling_freq # okres próbkowania
 n_samples = int(T_DISPLAY * sampling_freq) + 1
-t_sample = np.linspace(0, T_DISPLAY, n_samples)
+t_sample = np.linspace(0, T_DISPLAY, n_samples) # Czasy próbek cyfrowych
 v_sample = get_signal_value(t_sample, signal_shape, signal_freq, amplitude, dc_offset)
 
 # Tworzenie wykresu Plotly
@@ -149,11 +149,11 @@ else:
         fig_freq = go.Figure()
 
         # 1. Prążek DC (0 Hz)
-        if dc_offset > 0:
+        if dc_offset != 0:
             fig_freq.add_trace(go.Bar(
                 x=[0],
                 y=[dc_offset],
-                name=f'Składowa Stała (0 Hz)',
+                name=f'Składowa Stała (${dc_offset:.1f} Hz)',
                 marker_color='#34d399', # emerald-400
                 width=max(1, f_nyquist * 0.02) # Szerokość słupka
             ))
@@ -171,12 +171,12 @@ else:
         # 3. Linia Nyquista
         fig_freq.add_shape(
             type='line',
-            x0=f_nyquist, y0=0, x1=f_nyquist, y1=max(amplitude, dc_offset, 1),
+            x0=f_nyquist, y0=0, x1=f_nyquist, y1=max(amplitude, dc_offset, 1) ,
             line=dict(color='red', width=2, dash='dash'),
             name='f_Nyquist'
         )
         fig_freq.add_annotation(
-            x=f_nyquist, y=max(amplitude, dc_offset, 1) * 0.9,
+            x=f_nyquist, y=max(amplitude, dc_offset, 1) * 1.1,
             text=f'f_N = {f_nyquist:.1f} Hz',
             showarrow=False, xshift=10, align="left",
             font=dict(color='red')
